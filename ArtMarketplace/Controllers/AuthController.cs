@@ -10,15 +10,8 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        try
-        {
             var token = await _authService.RegisterAsync(request);
             return Ok(new { Token = token });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
     }
 
     [HttpPost("login")]

@@ -42,15 +42,7 @@ namespace ArtMarketplace.Domain.Services
             user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
             _context.Users.Add(user);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
+            await _context.SaveChangesAsync();
 
             return GenerateJwtToken(user);
         }
@@ -71,9 +63,9 @@ namespace ArtMarketplace.Domain.Services
         {
             var claims = new[]
             {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
+            new Claim("id", user.Id.ToString()),
+            new Claim("email", user.Email),
+            new Claim("role", user.Role)
         };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
