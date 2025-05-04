@@ -1,4 +1,4 @@
-﻿using ArtMarketplace.Controllers.DTOs;
+﻿using ArtMarketplace.Controllers.DTOs.Auth;
 using ArtMarketplace.Data;
 using ArtMarketplace.Domain.Models;
 using Microsoft.AspNetCore.Identity;

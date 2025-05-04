@@ -12,7 +12,8 @@ namespace ArtMarketplace.Data
 
         // Tables
         public DbSet<User> Users { get; set; } = null!;
-        /*public DbSet<Product> Products { get; set; } = null!;
+        public DbSet<Product> Products { get; set; } = null!;
+        /*
         public DbSet<Order> Orders { get; set; } = null!;
         public DbSet<Review> Reviews { get; set; } = null!;
         public DbSet<Delivery> Deliveries { get; set; } = null!;*/

@@ -1,4 +1,4 @@
-﻿namespace ArtMarketplace.Controllers.DTOs
+﻿namespace ArtMarketplace.Controllers.DTOs.Auth
 {
     public record RegisterRequest
     {
