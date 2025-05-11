@@ -1,5 +1,6 @@
 ﻿using ArtMarketplace.Controllers.DTOs.Product;
 using ArtMarketplace.Domain.Services;
+using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -32,5 +33,11 @@ public class ProductController(IProductService productService) : ControllerBase
     {
         return Ok(await productService.GetById(productId));
     }
-
+    [HttpGet("all")]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> GetAllProducts()
+    {
+        var serverUrl = $"{Request.Scheme}://{Request.Host}";
+        return Ok(await productService.GetAll(serverUrl));
+    }
 }

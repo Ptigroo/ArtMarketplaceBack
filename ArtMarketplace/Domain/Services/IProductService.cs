@@ -1,6 +1,7 @@
 ﻿using ArtMarketplace.Controllers.DTOs.Product;
 using ArtMarketplace.Data;
 using ArtMarketplace.Domain.Models;
+using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 namespace ArtMarketplace.Domain.Services;
 public interface IProductService
@@ -8,6 +9,7 @@ public interface IProductService
     Task<Guid> AddProductAsync(ProductCreateDto dto, Guid userId);
     Task<IEnumerable<ProductGetDto>> GetArtisanProducts(Guid userId);
     Task<ProductGetDto> GetById(Guid productId);
+    Task<List<Product>> GetAll(string imagesUrl);
 }
 public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
 {
@@ -45,6 +47,20 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
         dbContext.Products.Add(product);
             await dbContext.SaveChangesAsync();
         return product.Id;
+    }
+
+    public async Task<List<Product>> GetAll(string imageUrl)
+    {
+        return await dbContext.Products
+        .Select(p => new Product {
+            Id = p.Id,
+            Title = p.Title,
+            Description = p.Description,
+            Price = p.Price,
+            Category = p.Category,
+            ImageUrl = $"{imageUrl}/uploads/{p.ImageUrl}"
+        })
+        .ToListAsync();
     }
 
     public async Task<IEnumerable<ProductGetDto>> GetArtisanProducts(Guid userId)
