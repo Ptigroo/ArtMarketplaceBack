@@ -1,9 +1,7 @@
 ﻿using ArtMarketplace.Controllers.DTOs.Product;
 using ArtMarketplace.Domain.Services;
-using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace ArtMarketplace.Controllers;
@@ -25,7 +23,7 @@ public class ProductController(IProductService productService) : ControllerBase
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
-        return Ok(await productService.GetArtisanProducts(Guid.Parse(userId)));
+        return Ok(await productService.GetArtisanProductsAsync(Guid.Parse(userId)));
     }
 
     [HttpGet("{id}")]
@@ -38,6 +36,12 @@ public class ProductController(IProductService productService) : ControllerBase
     public async Task<IActionResult> GetAllProducts()
     {
         var serverUrl = $"{Request.Scheme}://{Request.Host}";
-        return Ok(await productService.GetAll(serverUrl));
+        return Ok(await productService.GetAllAsync(serverUrl));
+    }
+    [HttpPatch("buy")]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> BuyProduct(Guid productId)
+    {
+        return Ok(await productService.GetAllAsync(serverUrl));
     }
 }

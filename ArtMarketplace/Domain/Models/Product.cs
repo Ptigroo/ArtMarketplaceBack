@@ -9,4 +9,6 @@ public class Product
     public string? ImageUrl { get; set; }
     public Guid ArtisanId { get; set; }
     public User Artisan { get; set; }
+    public Guid BuyerId { get; set; }
+    public User Buyer { get; set; }
 }

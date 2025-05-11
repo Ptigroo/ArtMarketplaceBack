@@ -1,15 +1,15 @@
 ﻿using ArtMarketplace.Controllers.DTOs.Product;
 using ArtMarketplace.Data;
 using ArtMarketplace.Domain.Models;
-using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 namespace ArtMarketplace.Domain.Services;
 public interface IProductService
 {
     Task<Guid> AddProductAsync(ProductCreateDto dto, Guid userId);
-    Task<IEnumerable<ProductGetDto>> GetArtisanProducts(Guid userId);
+    Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(Guid userId);
     Task<ProductGetDto> GetById(Guid productId);
-    Task<List<Product>> GetAll(string imagesUrl);
+    Task<List<Product>> GetAllAsync(string imagesUrl);
+    Task BuyProductAsync(Guid productId, Guid userId);
 }
 public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
 {
@@ -49,8 +49,16 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
         return product.Id;
     }
 
-    public async Task<List<Product>> GetAll(string imageUrl)
+    public async Task BuyProductAsync(Guid productId, Guid userId)
     {
+        var product = await dbContext.Products.FirstAsync(product => product.Id == productId);
+        product.BuyerId = userId;
+        await dbContext.SaveChangesAsync();
+    }
+
+    public async Task<List<Product>> GetAllAsync(string imageUrl)
+    {
+        
         return await dbContext.Products
         .Select(p => new Product {
             Id = p.Id,
@@ -58,12 +66,12 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
             Description = p.Description,
             Price = p.Price,
             Category = p.Category,
-            ImageUrl = $"{imageUrl}/uploads/{p.ImageUrl}"
+            ImageUrl = $"{imageUrl}{p.ImageUrl}"
         })
         .ToListAsync();
     }
 
-    public async Task<IEnumerable<ProductGetDto>> GetArtisanProducts(Guid userId)
+    public async Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(Guid userId)
     {
 
         var products = await dbContext.Products
@@ -94,4 +102,5 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
             ImageUrl = product.ImageUrl
         };
     }
+
 }
