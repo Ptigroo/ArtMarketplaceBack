@@ -39,7 +39,7 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
             Title = dto.Title,
             Description = dto.Description,
             Price = dto.Price,
-            Category = dto.Category,
+            CategoryId = dto.CategoryId,
             ImageUrl = imageUrl,
             ArtisanId = userId
         };
@@ -82,7 +82,7 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
                 Title = p.Title,
                 Description = p.Description,
                 Price = p.Price,
-                Category = p.Category,
+                Category = p.Category.Name,
                 ImageUrl = p.ImageUrl
             })
             .ToListAsync();
@@ -98,7 +98,7 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
             Title = product.Title,
             Description = product.Description,
             Price = product.Price,
-            Category = product.Category,
+            Category = product.Category.Name,
             ImageUrl = product.ImageUrl
         };
     }

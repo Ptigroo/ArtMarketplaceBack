@@ -42,6 +42,9 @@ public class ProductController(IProductService productService) : ControllerBase
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> BuyProduct(Guid productId)
     {
-        return Ok(await productService.GetAllAsync(serverUrl));
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) return Unauthorized();
+        await productService.BuyProductAsync(productId, Guid.Parse(userId));
+        return Ok();
     }
 }

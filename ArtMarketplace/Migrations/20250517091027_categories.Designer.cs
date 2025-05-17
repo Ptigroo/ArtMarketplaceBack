@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ArtMarketplace.Migrations
 {
     [DbContext(typeof(ArtMarketplaceDbContext))]
-    [Migration("20250504153535_AdaptProductProperties")]
-    partial class AdaptProductProperties
+    [Migration("20250517091027_categories")]
+    partial class categories
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,21 @@ namespace ArtMarketplace.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ArtMarketplace.Domain.Models.Category", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("ArtMarketplace.Domain.Models.Product", b =>
                 {
                     b.Property<Guid>("Id")
@@ -34,9 +49,11 @@ namespace ArtMarketplace.Migrations
                     b.Property<Guid>("ArtisanId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid?>("BuyerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -54,6 +71,10 @@ namespace ArtMarketplace.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ArtisanId");
+
+                    b.HasIndex("BuyerId");
+
+                    b.HasIndex("CategoryId");
 
                     b.ToTable("Products");
                 });
@@ -87,12 +108,34 @@ namespace ArtMarketplace.Migrations
             modelBuilder.Entity("ArtMarketplace.Domain.Models.Product", b =>
                 {
                     b.HasOne("ArtMarketplace.Domain.Models.User", "Artisan")
-                        .WithMany()
+                        .WithMany("ArtisanProducts")
                         .HasForeignKey("ArtisanId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ArtMarketplace.Domain.Models.User", "Buyer")
+                        .WithMany("BuyerProducts")
+                        .HasForeignKey("BuyerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("ArtMarketplace.Domain.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Artisan");
+
+                    b.Navigation("Buyer");
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("ArtMarketplace.Domain.Models.User", b =>
+                {
+                    b.Navigation("ArtisanProducts");
+
+                    b.Navigation("BuyerProducts");
                 });
 #pragma warning restore 612, 618
         }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ArtMarketplace.Migrations
 {
     [DbContext(typeof(ArtMarketplaceDbContext))]
-    [Migration("20250504152449_AddProductEntity")]
-    partial class AddProductEntity
+    [Migration("20250513091307_buyerNullable")]
+    partial class buyerNullable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -34,16 +34,17 @@ namespace ArtMarketplace.Migrations
                     b.Property<Guid>("ArtisanId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("BuyerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
@@ -56,6 +57,8 @@ namespace ArtMarketplace.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ArtisanId");
+
+                    b.HasIndex("BuyerId");
 
                     b.ToTable("Products");
                 });
@@ -89,12 +92,26 @@ namespace ArtMarketplace.Migrations
             modelBuilder.Entity("ArtMarketplace.Domain.Models.Product", b =>
                 {
                     b.HasOne("ArtMarketplace.Domain.Models.User", "Artisan")
-                        .WithMany()
+                        .WithMany("ArtisanProducts")
                         .HasForeignKey("ArtisanId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("ArtMarketplace.Domain.Models.User", "Buyer")
+                        .WithMany("BuyerProducts")
+                        .HasForeignKey("BuyerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.Navigation("Artisan");
+
+                    b.Navigation("Buyer");
+                });
+
+            modelBuilder.Entity("ArtMarketplace.Domain.Models.User", b =>
+                {
+                    b.Navigation("ArtisanProducts");
+
+                    b.Navigation("BuyerProducts");
                 });
 #pragma warning restore 612, 618
         }
