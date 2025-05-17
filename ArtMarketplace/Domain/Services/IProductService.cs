@@ -6,10 +6,11 @@ namespace ArtMarketplace.Domain.Services;
 public interface IProductService
 {
     Task<Guid> AddProductAsync(ProductCreateDto dto, Guid userId);
-    Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(Guid userId);
+    Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(string imageUrl, Guid userId);
     Task<ProductGetDto> GetById(Guid productId);
-    Task<List<Product>> GetAllAsync(string imagesUrl);
+    Task<List<Product>> GetAllAvailableProductsAsync(string imagesUrl);
     Task BuyProductAsync(Guid productId, Guid userId);
+    Task<List<Product>> GetBoughtProduct(string imagesUrl, Guid userId);
 }
 public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
 {
@@ -51,15 +52,16 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
 
     public async Task BuyProductAsync(Guid productId, Guid userId)
     {
-        var product = await dbContext.Products.FirstAsync(product => product.Id == productId);
+        var product = await dbContext.Products.FirstOrDefaultAsync(product => product.Id == productId) ?? throw new Exception($"Product with id: {productId} does not exist");
         product.BuyerId = userId;
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<List<Product>> GetAllAsync(string imageUrl)
+    public async Task<List<Product>> GetAllAvailableProductsAsync(string imageUrl)
     {
         
         return await dbContext.Products
+        .Where(p => p.BuyerId == null)
         .Select(p => new Product {
             Id = p.Id,
             Title = p.Title,
@@ -71,7 +73,7 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
         .ToListAsync();
     }
 
-    public async Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(Guid userId)
+    public async Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(string imageUrl, Guid userId)
     {
 
         var products = await dbContext.Products
@@ -83,10 +85,26 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
                 Description = p.Description,
                 Price = p.Price,
                 Category = p.Category.Name,
-                ImageUrl = p.ImageUrl
+                ImageUrl = $"{imageUrl}{p.ImageUrl}"
             })
             .ToListAsync();
         return products;
+    }
+
+    public async Task<List<Product>> GetBoughtProduct(string imagesUrl, Guid userId)
+    {
+        return await dbContext.Products
+        .Where(p => p.BuyerId == userId)
+        .Select(p => new Product
+        {
+            Id = p.Id,
+            Title = p.Title,
+            Description = p.Description,
+            Price = p.Price,
+            Category = p.Category,
+            ImageUrl = $"{imagesUrl}{p.ImageUrl}"
+        })
+        .ToListAsync();
     }
 
     public async Task<ProductGetDto> GetById(Guid productId)

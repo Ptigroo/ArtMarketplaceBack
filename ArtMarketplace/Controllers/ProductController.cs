@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace ArtMarketplace.Controllers;
-
+[Route("product")]
 public class ProductController(IProductService productService) : ControllerBase
 {
     [HttpPost("addproduct")]
@@ -21,28 +21,39 @@ public class ProductController(IProductService productService) : ControllerBase
     [HttpGet("artisan")]
     public async Task<ActionResult<IEnumerable<ProductGetDto>>> GetArtisanProducts()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.FindFirst("id")?.Value;
         if (userId == null) return Unauthorized();
-        return Ok(await productService.GetArtisanProductsAsync(Guid.Parse(userId)));
+        var serverUrl = $"{Request.Scheme}://{Request.Host}";
+        return Ok(await productService.GetArtisanProductsAsync(serverUrl, Guid.Parse(userId)));
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{productId}")]
     public async Task<ActionResult<ProductGetDto>> GetById(Guid productId)
     {
         return Ok(await productService.GetById(productId));
     }
-    [HttpGet("all")]
+    [HttpGet("availables")]
     [Authorize(Roles = "Customer")]
-    public async Task<IActionResult> GetAllProducts()
+    public async Task<IActionResult> GetAllAvailableProducts()
     {
         var serverUrl = $"{Request.Scheme}://{Request.Host}";
-        return Ok(await productService.GetAllAsync(serverUrl));
+        return Ok(await productService.GetAllAvailableProductsAsync(serverUrl));
     }
-    [HttpPatch("buy")]
+
+    [HttpGet("bought")]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> GetBoughtProduct()
+    {
+        var serverUrl = $"{Request.Scheme}://{Request.Host}";
+        var userId = User.FindFirst("id")?.Value;
+        if (userId == null) return Unauthorized();
+        return Ok(await productService.GetBoughtProduct(serverUrl, Guid.Parse(userId)));
+    }
+    [HttpPatch("buy/{productId}")]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> BuyProduct(Guid productId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.FindFirst("id")?.Value;
         if (userId == null) return Unauthorized();
         await productService.BuyProductAsync(productId, Guid.Parse(userId));
         return Ok();
