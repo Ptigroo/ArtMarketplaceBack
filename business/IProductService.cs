@@ -1,24 +1,21 @@
 ﻿using ArtMarketplace.Controllers.DTOs.Product;
-using ArtMarketplace.Data;
 using ArtMarketplace.Domain.Models;
-using Microsoft.EntityFrameworkCore;
+using data.Repository;
 namespace ArtMarketplace.Domain.Services;
 public interface IProductService
 {
     Task<Guid> AddProductAsync(ProductCreateDto dto, Guid userId);
     Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(string imageUrl, Guid userId);
     Task<ProductGetDto> GetById(Guid productId);
-    Task<List<Product>> GetAllAvailableProductsAsync(string imagesUrl);
+    Task<IEnumerable<ProductGetDto>> GetAllAvailableProductsAsync(string imagesUrl);
     Task BuyProductAsync(Guid productId, Guid userId);
-    Task<List<Product>> GetBoughtProduct(string imagesUrl, Guid userId);
+    Task<IEnumerable<ProductGetDto>> GetBoughtProduct(string imagesUrl, Guid userId);
 }
-public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
+public class ProductService(IProductRepository productRepository) : IProductService
 {
     public async Task<Guid> AddProductAsync(ProductCreateDto dto, Guid userId)
     {
-
         string? imageUrl = null;
-
         if (dto.Image != null && dto.Image.Length > 0)
         {
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
@@ -36,7 +33,6 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
         }
         var product = new Product
         {
-            Id = Guid.NewGuid(),
             Title = dto.Title,
             Description = dto.Description,
             Price = dto.Price,
@@ -44,72 +40,60 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
             ImageUrl = imageUrl,
             ArtisanId = userId
         };
-
-        dbContext.Products.Add(product);
-            await dbContext.SaveChangesAsync();
-        return product.Id;
+        var productId = await productRepository.AddProductAsync(product);
+        return productId;
     }
 
     public async Task BuyProductAsync(Guid productId, Guid userId)
     {
-        var product = await dbContext.Products.FirstOrDefaultAsync(product => product.Id == productId) ?? throw new Exception($"Product with id: {productId} does not exist");
-        product.BuyerId = userId;
-        await dbContext.SaveChangesAsync();
+        await productRepository.SetBuyer(productId, userId);
     }
 
-    public async Task<List<Product>> GetAllAvailableProductsAsync(string imageUrl)
+    public async Task<IEnumerable<ProductGetDto>> GetAllAvailableProductsAsync(string imageUrl)
     {
-        
-        return await dbContext.Products
-        .Where(p => p.BuyerId == null)
-        .Select(p => new Product {
-            Id = p.Id,
-            Title = p.Title,
-            Description = p.Description,
-            Price = p.Price,
-            Category = p.Category,
-            ImageUrl = $"{imageUrl}{p.ImageUrl}"
-        })
-        .ToListAsync();
-    }
-
-    public async Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(string imageUrl, Guid userId)
-    {
-
-        var products = await dbContext.Products
-            .Where(p => p.ArtisanId == userId)
-            .Select(p => new ProductGetDto
-            {
-                Id = p.Id,
-                Title = p.Title,
-                Description = p.Description,
-                Price = p.Price,
-                Category = p.Category.Name,
-                ImageUrl = $"{imageUrl}{p.ImageUrl}"
-            })
-            .ToListAsync();
-        return products;
-    }
-
-    public async Task<List<Product>> GetBoughtProduct(string imagesUrl, Guid userId)
-    {
-        return await dbContext.Products
-        .Where(p => p.BuyerId == userId)
-        .Select(p => new Product
+        var availableProducts = await productRepository.GetAllAvailableProductsAsync();
+        return availableProducts.Select(p => new ProductGetDto
         {
             Id = p.Id,
             Title = p.Title,
             Description = p.Description,
             Price = p.Price,
-            Category = p.Category,
+            Category = p.Category.Name,
+            ImageUrl = $"{imageUrl}{p.ImageUrl}"
+        });
+    }
+
+    public async Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(string imageUrl, Guid userId)
+    {
+        var products = await productRepository.GetArtisanProductsAsync(userId);
+        return products.Select(p => new ProductGetDto
+        {
+            Id = p.Id,
+            Title = p.Title,
+            Description = p.Description,
+            Price = p.Price,
+            Category = p.Category.Name,
+            ImageUrl = $"{imageUrl}{p.ImageUrl}"
+        });
+    }
+
+    public async Task<IEnumerable<ProductGetDto>> GetBoughtProduct(string imagesUrl, Guid userId)
+    {
+        var products = await productRepository.GetBoughtProduct(userId);
+        return products.Select(p => new ProductGetDto
+        {
+            Id = p.Id,
+            Title = p.Title,
+            Description = p.Description,
+            Price = p.Price,
+            Category = p.Category.Name,
             ImageUrl = $"{imagesUrl}{p.ImageUrl}"
-        })
-        .ToListAsync();
+        });
     }
 
     public async Task<ProductGetDto> GetById(Guid productId)
     {
-        var product = await dbContext.Products.FindAsync(productId);
+        var product = await productRepository.GetById(productId);
         return new ProductGetDto
         {
             Id = product.Id,
@@ -120,5 +104,4 @@ public class ProductService(ArtMarketplaceDbContext dbContext) : IProductService
             ImageUrl = product.ImageUrl
         };
     }
-
 }
