@@ -49,13 +49,31 @@ public class ProductController(IProductService productService) : ControllerBase
         if (userId == null) return Unauthorized();
         return Ok(await productService.GetBoughtProduct(serverUrl, Guid.Parse(userId)));
     }
-    [HttpPatch("buy/{productId}")]
+    [HttpPatch("addtobasket/{productId}")]
     [Authorize(Roles = "Customer")]
-    public async Task<IActionResult> BuyProduct(Guid productId)
+    public async Task<IActionResult> AddToBasketProduct(Guid productId)
     {
         var userId = User.FindFirst("id")?.Value;
         if (userId == null) return Unauthorized();
-        await productService.BuyProductAsync(productId, Guid.Parse(userId));
+        await productService.AddToBasketProduct(productId, Guid.Parse(userId));
         return Ok();
+    }
+    [HttpGet("basket")]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> GetBasket()
+    {
+        var serverUrl = $"{Request.Scheme}://{Request.Host}";
+        var userId = User.FindFirst("id")?.Value;
+        if (userId == null) return Unauthorized();
+        return Ok(await productService.GetBasket(serverUrl, Guid.Parse(userId)));
+    }
+    [HttpPatch("buybasket")]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> BuyBasket()
+    {
+        var userId = User.FindFirst("id")?.Value;
+        if (userId == null) return Unauthorized();
+        await productService.BuyBasket(Guid.Parse(userId));
+        return NoContent();
     }
 }

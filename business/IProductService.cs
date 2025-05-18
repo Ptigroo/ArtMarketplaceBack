@@ -8,8 +8,10 @@ public interface IProductService
     Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(string imageUrl, Guid userId);
     Task<ProductGetDto> GetById(Guid productId);
     Task<IEnumerable<ProductGetDto>> GetAllAvailableProductsAsync(string imagesUrl);
-    Task BuyProductAsync(Guid productId, Guid userId);
+    Task AddToBasketProduct(Guid productId, Guid userId);
     Task<IEnumerable<ProductGetDto>> GetBoughtProduct(string imagesUrl, Guid userId);
+    Task<IEnumerable<ProductGetDto>> GetBasket(string imagesUrl, Guid userId);
+    Task BuyBasket(Guid userId);
 }
 public class ProductService(IProductRepository productRepository) : IProductService
 {
@@ -44,7 +46,7 @@ public class ProductService(IProductRepository productRepository) : IProductServ
         return productId;
     }
 
-    public async Task BuyProductAsync(Guid productId, Guid userId)
+    public async Task AddToBasketProduct(Guid productId, Guid userId)
     {
         await productRepository.SetBuyer(productId, userId);
     }
@@ -52,45 +54,26 @@ public class ProductService(IProductRepository productRepository) : IProductServ
     public async Task<IEnumerable<ProductGetDto>> GetAllAvailableProductsAsync(string imageUrl)
     {
         var availableProducts = await productRepository.GetAllAvailableProductsAsync();
-        return availableProducts.Select(p => new ProductGetDto
-        {
-            Id = p.Id,
-            Title = p.Title,
-            Description = p.Description,
-            Price = p.Price,
-            Category = p.Category.Name,
-            ImageUrl = $"{imageUrl}{p.ImageUrl}"
-        });
+        return availableProducts.Select(p => p.ConvertToDto(imageUrl));
     }
 
     public async Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(string imageUrl, Guid userId)
     {
         var products = await productRepository.GetArtisanProductsAsync(userId);
-        return products.Select(p => new ProductGetDto
-        {
-            Id = p.Id,
-            Title = p.Title,
-            Description = p.Description,
-            Price = p.Price,
-            Category = p.Category.Name,
-            ImageUrl = $"{imageUrl}{p.ImageUrl}"
-        });
+        return products.Select(p => p.ConvertToDto(imageUrl));
     }
 
-    public async Task<IEnumerable<ProductGetDto>> GetBoughtProduct(string imagesUrl, Guid userId)
+    public async Task<IEnumerable<ProductGetDto>> GetBoughtProduct(string imagesServerUrl, Guid userId)
     {
         var products = await productRepository.GetBoughtProduct(userId);
-        return products.Select(p => new ProductGetDto
-        {
-            Id = p.Id,
-            Title = p.Title,
-            Description = p.Description,
-            Price = p.Price,
-            Category = p.Category.Name,
-            ImageUrl = $"{imagesUrl}{p.ImageUrl}"
-        });
+        return products.Select(p => p.ConvertToDto(imagesServerUrl));
     }
-
+    public async Task<IEnumerable<ProductGetDto>> GetBasket(string imagesServerUrl, Guid userId)
+    {
+        var products = await productRepository.GetBasket(userId);
+        return products.Select(p => p.ConvertToDto(imagesServerUrl));
+    }
+    
     public async Task<ProductGetDto> GetById(Guid productId)
     {
         var product = await productRepository.GetById(productId);
@@ -103,5 +86,14 @@ public class ProductService(IProductRepository productRepository) : IProductServ
             Category = product.Category.Name,
             ImageUrl = product.ImageUrl
         };
+    }
+
+    public async Task BuyBasket(Guid userId)
+    {
+        var currentBasket = await productRepository.GetBasket(userId);
+        foreach (var product in currentBasket)
+        {
+            await productRepository.BuyProduct(product);
+        }
     }
 }

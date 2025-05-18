@@ -7,4 +7,6 @@ public record ProductGetDto
     public decimal Price { get; set; }
     public string Category { get; set; }
     public string? ImageUrl { get; set; }
+    public string ProductStatus { get; set; }
+    public string DeliveryStatus { get; set; }
 }

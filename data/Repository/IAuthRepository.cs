@@ -17,8 +17,6 @@ public class AuthRepository(ArtMarketplaceDbContext dbContext) : IAuthRepository
             throw new Exception("Email already exists");
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
-        if (dbContext.Users.Any(u => u.Email == user.Email))
-            throw new Exception("Email already exists");
     }
 
     public async Task<User> GetUserByEmail(string email)
