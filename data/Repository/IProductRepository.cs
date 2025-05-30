@@ -1,6 +1,7 @@
 ﻿using ArtMarketplace.Controllers.DTOs.Product;
 using ArtMarketplace.Data;
 using ArtMarketplace.Domain.Models;
+using domain.DTOs.Product;
 using Microsoft.EntityFrameworkCore;
 
 namespace data.Repository;
@@ -14,6 +15,7 @@ public interface IProductRepository
     Task<List<Product>> GetBoughtProduct(Guid userId);
     Task<List<Product>> GetBasket(Guid userId);
     Task BuyProduct(Product product);
+    Task SetReview(Guid productId, string Review, float Rating);
 }
 public class ProductRepository(ArtMarketplaceDbContext dbContext) : IProductRepository
 {
@@ -68,5 +70,15 @@ public class ProductRepository(ArtMarketplaceDbContext dbContext) : IProductRepo
     {
         var product = await dbContext.Products.Include(product => product.Category).FirstOrDefaultAsync(product => product.Id == productId) ?? throw new Exception($"Product with id: {productId} does not exist");
         return product;
+    }
+    public async Task SetReview(Guid productId, string Comment, float Rating)
+    {
+        var product = await dbContext.Products.Include(product => product.Review).SingleOrDefaultAsync(product => product.Id == productId);
+        if (product.ReviewId == null)
+        {
+            product.Review = new Review { Id= Guid.NewGuid() };
+        }
+        product.Review.Comment = Comment;
+        product.Review.Rating = Rating;
     }
 }

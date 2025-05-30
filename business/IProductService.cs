@@ -1,6 +1,8 @@
 ﻿using ArtMarketplace.Controllers.DTOs.Product;
 using ArtMarketplace.Domain.Models;
 using data.Repository;
+using domain.DTOs.Product;
+using System.ComponentModel.DataAnnotations;
 namespace ArtMarketplace.Domain.Services;
 public interface IProductService
 {
@@ -12,6 +14,7 @@ public interface IProductService
     Task<IEnumerable<ProductGetDto>> GetBoughtProduct(string imagesUrl, Guid userId);
     Task<IEnumerable<ProductGetDto>> GetBasket(string imagesUrl, Guid userId);
     Task BuyBasket(Guid userId);
+    Task Review(ProductReviewDto product);
 }
 public class ProductService(IProductRepository productRepository) : IProductService
 {
@@ -95,5 +98,14 @@ public class ProductService(IProductRepository productRepository) : IProductServ
         {
             await productRepository.BuyProduct(product);
         }
+    }
+
+    public async Task Review(ProductReviewDto product)
+    {
+        if (product.Rating > 5)
+        {
+            throw new ValidationException($"{product.Rating} is not a acceptable value for a rating");
+        }
+        await productRepository.SetReview(product.Id, product.Comment, product.Rating);
     }
 }

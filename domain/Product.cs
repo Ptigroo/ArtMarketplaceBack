@@ -1,4 +1,5 @@
 ﻿using ArtMarketplace.Controllers.DTOs.Product;
+using domain;
 
 namespace ArtMarketplace.Domain.Models;
 public class Product
@@ -14,6 +15,8 @@ public class Product
     public User Artisan { get; set; }
     public Guid? BuyerId { get; set; }
     public User Buyer { get; set; }
+    public Guid? ReviewId { get; set; }
+    public Review Review { get; set; }
     public ProductStatus ProductStatus { get; set; } = ProductStatus.Available;
     public DeliveryStatus DeliveryStatus { get; set; } = DeliveryStatus.ToPickAtArtist;
     public ProductGetDto ConvertToDto(string imageServerUrl)
