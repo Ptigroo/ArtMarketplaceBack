@@ -78,7 +78,7 @@ public class ProductController(IProductService productService) : ControllerBase
     }
     [HttpPatch("review")]
     [Authorize(Roles = "Customer")]
-    public async Task<IActionResult> Review(ProductReviewDto product)
+    public async Task<IActionResult> Review([FromBody] ProductReviewDto product)
     {
         await productService.Review(product);
         return NoContent();

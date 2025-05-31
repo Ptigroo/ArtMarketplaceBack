@@ -30,7 +30,9 @@ public class Product
             Category = Category.Name,
             ImageUrl = $"{imageServerUrl}{ImageUrl}",
             ProductStatus = ProductStatus.ToString(),
-            DeliveryStatus = DeliveryStatus.ToString()
+            DeliveryStatus = DeliveryStatus.ToString(),
+            ReviewComment = Review?.Comment ?? "",
+            ReviewRating = Review?.Rating ?? 0
         };
     }
 }

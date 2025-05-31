@@ -87,7 +87,9 @@ public class ProductService(IProductRepository productRepository) : IProductServ
             Description = product.Description,
             Price = product.Price,
             Category = product.Category.Name,
-            ImageUrl = product.ImageUrl
+            ImageUrl = product.ImageUrl,
+            ReviewComment = product.Review?.Comment ?? "",
+            ReviewRating = product.Review?.Rating ?? 0
         };
     }
 

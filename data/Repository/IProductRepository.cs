@@ -36,21 +36,21 @@ public class ProductRepository(ArtMarketplaceDbContext dbContext) : IProductRepo
 
     public async Task<List<Product>> GetAllAvailableProductsAsync()
     {
-        return await dbContext.Products.Include(product => product.Category)
+        return await dbContext.Products.Include(product => product.Category).Include(product => product.Review)
         .Where(p => p.BuyerId == null)
         .ToListAsync();
     }
 
     public async Task<List<Product>> GetArtisanProductsAsync(Guid userId)
     {
-        return await dbContext.Products.Include(product => product.Category)
+        return await dbContext.Products.Include(product => product.Category).Include(product => product.Review)
             .Where(p => p.ArtisanId == userId)
             .ToListAsync();
     }
 
     public async Task<List<Product>> GetBoughtProduct(Guid userId)
     {
-        return await dbContext.Products.Include(product => product.Category)
+        return await dbContext.Products.Include(product => product.Category).Include(product => product.Review)
         .Where(p => p.BuyerId == userId && p.ProductStatus == ProductStatus.Bought)
         .ToListAsync();
     }
@@ -68,7 +68,7 @@ public class ProductRepository(ArtMarketplaceDbContext dbContext) : IProductRepo
 
     public async Task<Product> GetById(Guid productId)
     {
-        var product = await dbContext.Products.Include(product => product.Category).FirstOrDefaultAsync(product => product.Id == productId) ?? throw new Exception($"Product with id: {productId} does not exist");
+        var product = await dbContext.Products.Include(product => product.Category).Include(product => product.Review).FirstOrDefaultAsync(product => product.Id == productId) ?? throw new Exception($"Product with id: {productId} does not exist");
         return product;
     }
     public async Task SetReview(Guid productId, string Comment, float Rating)
@@ -76,9 +76,10 @@ public class ProductRepository(ArtMarketplaceDbContext dbContext) : IProductRepo
         var product = await dbContext.Products.Include(product => product.Review).SingleOrDefaultAsync(product => product.Id == productId);
         if (product.ReviewId == null)
         {
-            product.Review = new Review { Id= Guid.NewGuid() };
+            product.Review = new Review();
         }
         product.Review.Comment = Comment;
         product.Review.Rating = Rating;
+        await dbContext.SaveChangesAsync();
     }
 }
