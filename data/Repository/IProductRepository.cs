@@ -1,15 +1,15 @@
-﻿using ArtMarketplace.Controllers.DTOs.Product;
-using ArtMarketplace.Data;
+﻿using ArtMarketplace.Data;
 using ArtMarketplace.Domain.Models;
-using domain.DTOs.Product;
 using Microsoft.EntityFrameworkCore;
 
 namespace data.Repository;
 public interface IProductRepository
 {
     Task<Guid> AddProductAsync(Product product);
+    Task EditProductAsync(Guid productId, string title, string description, decimal price, Guid categoryId, string? imageUrl);
     Task<List<Product>> GetArtisanProductsAsync(Guid userId);
     Task<Product> GetById(Guid productId);
+    Task<string?> GetImage(Guid productId);
     Task<List<Product>> GetAllAvailableProductsAsync();
     Task SetBuyer(Guid productId, Guid userId);
     Task<List<Product>> GetBoughtProduct(Guid userId);
@@ -21,9 +21,28 @@ public class ProductRepository(ArtMarketplaceDbContext dbContext) : IProductRepo
 {
     public async Task<Guid> AddProductAsync(Product product)
     {
-        Guid productId =  dbContext.Products.Add(product).Entity.Id;
+        Guid productId = dbContext.Products.Add(product).Entity.Id;
         await dbContext.SaveChangesAsync();
         return productId;
+    }
+    public async Task<string?> GetImage(Guid productId)
+    {
+        return (await dbContext.Products.FirstOrDefaultAsync(product => product.Id == productId))?.ImageUrl ?? throw new KeyNotFoundException("");
+    }
+    public async Task EditProductAsync(Guid productId, string title, string description, decimal price, Guid categoryId, string? imageUrl)
+    {
+        var productToEdit = await dbContext.Products.Include(prod => prod.Category).FirstAsync(prod => productId == prod.Id);
+        if (imageUrl != null)
+        {
+            productToEdit.ImageUrl = imageUrl;
+        }
+        productToEdit.Title = title;
+        productToEdit.Description = description;
+        productToEdit.Price = price;
+        productToEdit.CategoryId = categoryId;
+
+        dbContext.Products.Update(productToEdit);
+        await dbContext.SaveChangesAsync();
     }
 
     public async Task SetBuyer(Guid productId, Guid userId)

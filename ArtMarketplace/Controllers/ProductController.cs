@@ -83,4 +83,12 @@ public class ProductController(IProductService productService) : ControllerBase
         await productService.Review(product);
         return NoContent();
     }
+    [HttpPut("editproduct/{id}")]
+    [RequestSizeLimit(10_000_000)]
+    [Authorize(Roles = "Artisan")]
+    public async Task<IActionResult> Edit(Guid id,[FromForm] ProductCreateDto dto )
+    {
+        await productService.EditProductAsync(dto, id);
+        return NoContent();
+    }
 }

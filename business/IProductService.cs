@@ -7,6 +7,7 @@ namespace ArtMarketplace.Domain.Services;
 public interface IProductService
 {
     Task<Guid> AddProductAsync(ProductCreateDto dto, Guid userId);
+    Task EditProductAsync(ProductCreateDto dto, Guid productId);
     Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(string imageUrl, Guid userId);
     Task<ProductGetDto> GetById(Guid productId);
     Task<IEnumerable<ProductGetDto>> GetAllAvailableProductsAsync(string imagesUrl);
@@ -48,7 +49,23 @@ public class ProductService(IProductRepository productRepository) : IProductServ
         var productId = await productRepository.AddProductAsync(product);
         return productId;
     }
-
+    public async Task EditProductAsync(ProductCreateDto dto, Guid productId)
+    {
+        string? imageUrl = null;
+        if (dto.Image != null && dto.Image.Length > 0)
+        {
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            Directory.CreateDirectory(uploadsFolder);
+            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await dto.Image.CopyToAsync(fileStream);
+            }
+            imageUrl = $"/uploads/{uniqueFileName}";
+        }
+        await productRepository.EditProductAsync(productId, dto.Title, dto.Description, dto.Price, dto.CategoryId, imageUrl);
+    }
     public async Task AddToBasketProduct(Guid productId, Guid userId)
     {
         await productRepository.SetBuyer(productId, userId);
