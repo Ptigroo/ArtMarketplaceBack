@@ -1,4 +1,5 @@
 ﻿using ArtMarketplace.Controllers.DTOs.Product;
+using ArtMarketplace.Domain.Models;
 using ArtMarketplace.Domain.Services;
 using domain.DTOs.Product;
 using Microsoft.AspNetCore.Authorization;
@@ -89,6 +90,14 @@ public class ProductController(IProductService productService) : ControllerBase
     public async Task<IActionResult> Edit(Guid id,[FromForm] ProductCreateDto dto )
     {
         await productService.EditProductAsync(dto, id);
+        return NoContent();
+    }
+
+    [HttpPatch("pickedup/{productId}")]
+    [Authorize(Roles = "Artisan")]
+    public async Task<IActionResult> SetProductAsPickedUpByPartner(Guid productId)
+    {
+        await productService.SetDeliveryStatus(DeliveryStatus.PickedFromArtist ,productId);
         return NoContent();
     }
 }

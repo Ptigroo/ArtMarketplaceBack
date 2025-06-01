@@ -16,6 +16,7 @@ public interface IProductRepository
     Task<List<Product>> GetBasket(Guid userId);
     Task BuyProduct(Product product);
     Task SetReview(Guid productId, string Review, float Rating);
+    Task SetDeliveryStatus(DeliveryStatus deliveryStatus, Guid productId);
 }
 public class ProductRepository(ArtMarketplaceDbContext dbContext) : IProductRepository
 {
@@ -99,6 +100,13 @@ public class ProductRepository(ArtMarketplaceDbContext dbContext) : IProductRepo
         }
         product.Review.Comment = Comment;
         product.Review.Rating = Rating;
+        await dbContext.SaveChangesAsync();
+    }
+
+    public async Task SetDeliveryStatus(DeliveryStatus deliveryStatus, Guid productId)
+    {
+        var product = (await dbContext.Products.SingleOrDefaultAsync(product => product.Id == productId)) ??  throw new KeyNotFoundException($"Product with id {productId} does not seem to exist");
+        product.DeliveryStatus = deliveryStatus;
         await dbContext.SaveChangesAsync();
     }
 }

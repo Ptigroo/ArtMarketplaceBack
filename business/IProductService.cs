@@ -16,6 +16,7 @@ public interface IProductService
     Task<IEnumerable<ProductGetDto>> GetBasket(string imagesUrl, Guid userId);
     Task BuyBasket(Guid userId);
     Task Review(ProductReviewDto product);
+    Task SetDeliveryStatus(DeliveryStatus status, Guid productId);
 }
 public class ProductService(IProductRepository productRepository) : IProductService
 {
@@ -126,5 +127,10 @@ public class ProductService(IProductRepository productRepository) : IProductServ
             throw new ValidationException($"{product.Rating} is not a acceptable value for a rating");
         }
         await productRepository.SetReview(product.Id, product.Comment, product.Rating);
+    }
+
+    public async Task SetDeliveryStatus(DeliveryStatus status, Guid productId)
+    {
+        await productRepository.SetDeliveryStatus(status, productId);
     }
 }
