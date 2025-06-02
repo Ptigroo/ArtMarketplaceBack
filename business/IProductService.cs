@@ -11,12 +11,13 @@ public interface IProductService
     Task<IEnumerable<ProductGetDto>> GetArtisanProductsAsync(string imageUrl, Guid userId);
     Task<ProductGetDto> GetById(Guid productId);
     Task<IEnumerable<ProductGetDto>> GetAllAvailableProductsAsync(string imagesUrl);
+    Task<IEnumerable<ProductGetDto>> GetProductsToDeliver(string imagesUrl);
     Task AddToBasketProduct(Guid productId, Guid userId);
     Task<IEnumerable<ProductGetDto>> GetBoughtProduct(string imagesUrl, Guid userId);
     Task<IEnumerable<ProductGetDto>> GetBasket(string imagesUrl, Guid userId);
     Task BuyBasket(Guid userId);
     Task Review(ProductReviewDto product);
-    Task SetDeliveryStatus(DeliveryStatus status, Guid productId);
+    Task<DeliveryStatus> SetDeliveryStatus(Guid productId);
 }
 public class ProductService(IProductRepository productRepository) : IProductService
 {
@@ -129,8 +130,22 @@ public class ProductService(IProductRepository productRepository) : IProductServ
         await productRepository.SetReview(product.Id, product.Comment, product.Rating);
     }
 
-    public async Task SetDeliveryStatus(DeliveryStatus status, Guid productId)
+    public async Task<DeliveryStatus> SetDeliveryStatus(Guid productId)
     {
-        await productRepository.SetDeliveryStatus(status, productId);
+        var product = await productRepository.GetById(productId);
+        DeliveryStatus nextStatus = product.DeliveryStatus switch
+        {
+            DeliveryStatus.ToPickAtArtist => DeliveryStatus.PickedFromArtist,
+            DeliveryStatus.PickedFromArtist => DeliveryStatus.WaitingForDeliveryOfficier,
+            DeliveryStatus.WaitingForDeliveryOfficier => DeliveryStatus.InDelivery,
+            DeliveryStatus.InDelivery => DeliveryStatus.Delivered
+        };
+        await productRepository.SetDeliveryStatus(nextStatus, product);
+        return nextStatus;
+    }
+
+    public async Task<IEnumerable<ProductGetDto>> GetProductsToDeliver(string imagesUrl)
+    {
+        return (await productRepository.GetProductsToDeliver()).Select(product => product.ConvertToDto(imagesUrl));
     }
 }

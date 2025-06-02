@@ -16,7 +16,8 @@ public interface IProductRepository
     Task<List<Product>> GetBasket(Guid userId);
     Task BuyProduct(Product product);
     Task SetReview(Guid productId, string Review, float Rating);
-    Task SetDeliveryStatus(DeliveryStatus deliveryStatus, Guid productId);
+    Task SetDeliveryStatus(DeliveryStatus deliveryStatus, Product product);
+    Task<IEnumerable<Product>> GetProductsToDeliver();
 }
 public class ProductRepository(ArtMarketplaceDbContext dbContext) : IProductRepository
 {
@@ -103,10 +104,14 @@ public class ProductRepository(ArtMarketplaceDbContext dbContext) : IProductRepo
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task SetDeliveryStatus(DeliveryStatus deliveryStatus, Guid productId)
+    public async Task SetDeliveryStatus(DeliveryStatus deliveryStatus, Product product)
     {
-        var product = (await dbContext.Products.SingleOrDefaultAsync(product => product.Id == productId)) ??  throw new KeyNotFoundException($"Product with id {productId} does not seem to exist");
         product.DeliveryStatus = deliveryStatus;
         await dbContext.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<Product>> GetProductsToDeliver()
+    {
+        return await dbContext.Products.Include(product => product.Category).Where(product => product.ProductStatus == ProductStatus.Bought && product.DeliveryStatus != DeliveryStatus.Delivered).ToListAsync();
     }
 }

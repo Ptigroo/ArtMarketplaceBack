@@ -40,6 +40,13 @@ public class ProductController(IProductService productService) : ControllerBase
         var serverUrl = $"{Request.Scheme}://{Request.Host}";
         return Ok(await productService.GetAllAvailableProductsAsync(serverUrl));
     }
+    [HttpGet("todeliver")]
+    [Authorize(Roles = "DeliveryPartner")]
+    public async Task<IActionResult> GetProductsToDeliver()
+    {
+        var serverUrl = $"{Request.Scheme}://{Request.Host}";
+        return Ok(await productService.GetProductsToDeliver(serverUrl));
+    }
 
     [HttpGet("bought")]
     [Authorize(Roles = "Customer")]
@@ -92,12 +99,11 @@ public class ProductController(IProductService productService) : ControllerBase
         await productService.EditProductAsync(dto, id);
         return NoContent();
     }
-
-    [HttpPatch("pickedup/{productId}")]
-    [Authorize(Roles = "Artisan")]
-    public async Task<IActionResult> SetProductAsPickedUpByPartner(Guid productId)
+    [HttpPatch("deliveryStatusUpdate/{productId}")]
+    [Authorize(Roles = "Artisan,DeliveryPartner")]
+    public async Task<IActionResult> UpdateDeliveryStatusUpdate(Guid productId)
     {
-        await productService.SetDeliveryStatus(DeliveryStatus.PickedFromArtist ,productId);
-        return NoContent();
+        var nextStatus = await productService.SetDeliveryStatus(productId);
+        return Ok(new { NextStatus  = nextStatus.ToString()});
     }
 }
