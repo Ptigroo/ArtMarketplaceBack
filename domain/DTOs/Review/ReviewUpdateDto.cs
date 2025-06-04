@@ -1,5 +1,5 @@
-﻿namespace domain.DTOs.Product;
-public record ProductReviewDto
+﻿namespace domain.DTOs.Review;
+public record ReviewUpdateDto
 {
     public Guid Id { get; set; }
     public int Rating { get; set; }

@@ -1,7 +1,7 @@
 ﻿using ArtMarketplace.Controllers.DTOs.Product;
 using ArtMarketplace.Domain.Models;
 using ArtMarketplace.Domain.Services;
-using domain.DTOs.Product;
+using domain.DTOs.Review;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -82,13 +82,6 @@ public class ProductController(IProductService productService) : ControllerBase
         var userId = User.FindFirst("id")?.Value;
         if (userId == null) return Unauthorized();
         await productService.BuyBasket(Guid.Parse(userId));
-        return NoContent();
-    }
-    [HttpPatch("review")]
-    [Authorize(Roles = "Customer")]
-    public async Task<IActionResult> Review([FromBody] ProductReviewDto product)
-    {
-        await productService.Review(product);
         return NoContent();
     }
     [HttpPut("editproduct/{id}")]

@@ -28,7 +28,11 @@ public class ArtMarketplaceDbContext : DbContext
 
         modelBuilder.Entity<Product>()
             .HasOne(p => p.Buyer)
-            .WithMany(u => u.BuyerProducts).OnDelete(DeleteBehavior.NoAction);
+            .WithMany(u => u.BuyerProducts).OnDelete(DeleteBehavior.NoAction); 
+        modelBuilder.Entity<Review>()
+            .HasOne(p => p.Product)
+            .WithOne(r => r.Review)
+            .HasForeignKey<Product>(r => r.ReviewId);
     }
 }
     public class ArtMarketplaceDbContextFactory : IDesignTimeDbContextFactory<ArtMarketplaceDbContext>

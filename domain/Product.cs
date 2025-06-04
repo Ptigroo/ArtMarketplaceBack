@@ -31,8 +31,7 @@ public class Product
             ImageUrl = $"{imageServerUrl}{ImageUrl}",
             ProductStatus = ProductStatus.ToString(),
             DeliveryStatus = DeliveryStatus.ToString(),
-            ReviewComment = Review?.Comment ?? "",
-            ReviewRating = Review?.Rating ?? 0
+            ReviewId = ReviewId
         };
     }
 }

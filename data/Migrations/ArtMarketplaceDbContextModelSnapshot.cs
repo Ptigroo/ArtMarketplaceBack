@@ -82,7 +82,9 @@ namespace data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("ReviewId");
+                    b.HasIndex("ReviewId")
+                        .IsUnique()
+                        .HasFilter("[ReviewId] IS NOT NULL");
 
                     b.ToTable("Products");
                 });
@@ -97,8 +99,15 @@ namespace data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<float>("Rating")
                         .HasColumnType("real");
+
+                    b.Property<string>("Response")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -145,14 +154,14 @@ namespace data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("ArtMarketplace.Domain.Models.Category", "Category")
-                        .WithMany()
+                        .WithMany("Products")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ArtMarketplace.Domain.Models.Review", "Review")
-                        .WithMany()
-                        .HasForeignKey("ReviewId");
+                        .WithOne("Product")
+                        .HasForeignKey("ArtMarketplace.Domain.Models.Product", "ReviewId");
 
                     b.Navigation("Artisan");
 
@@ -161,6 +170,17 @@ namespace data.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("ArtMarketplace.Domain.Models.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("ArtMarketplace.Domain.Models.Review", b =>
+                {
+                    b.Navigation("Product")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ArtMarketplace.Domain.Models.User", b =>

@@ -9,6 +9,5 @@ public record ProductGetDto
     public string? ImageUrl { get; set; }
     public string ProductStatus { get; set; }
     public string DeliveryStatus { get; set; }
-    public string ReviewComment { get; set; }
-    public float ReviewRating { get; set; }
+    public Guid? ReviewId { get; set; }
 }
