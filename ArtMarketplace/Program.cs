@@ -2,6 +2,7 @@ using ArtMarketplace.Data;
 using ArtMarketplace.Domain.Models;
 using ArtMarketplace.Domain.Services;
 using business;
+using data;
 using data.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -63,16 +64,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ArtMarketplaceDbContext>();
-    context.Database.Migrate(); 
-    if (!context.Categories.Any())
-    {
-        context.Categories.AddRange(
-            new Category { Name = "Painture" },
-            new Category { Name = "Sculpture" },
-            new Category { Name = "Photo" }
-        );
-        context.SaveChanges();
-    }
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+    DataSeeder.SeedData(context, passwordHasher);
+    //Images
+    //faee8023-b676-42f5-8dc1-4ed5064aac1d
 }
 
 // Configure the HTTP request pipeline.
