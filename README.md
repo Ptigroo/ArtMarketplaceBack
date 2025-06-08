@@ -1,3 +1,9 @@
+Mettre la base de données à jour:
+  -  Se placer dans le dossier data et lancer la commande: dotnet ef database update --startup-project ../ArtMarketplace
+    
+Lancement de l'application;
+  -  Se placer dans le dossier ArtMarketPlace (celui qui contient le fichier Program.cs) et lancer la commande: "dotnet run" ou "dotnet run -debug" pour la lancer en debug et avoir accès au swagger  
+
 Cas d'usage implémentés:
 
   Utilisateur non identifié:
@@ -26,5 +32,10 @@ Cas d'usage implémentés:
     -  Laisser un avis sur un produit
     -  Modifier cet avis
     -  Voire la réponse éventuelle de l'artiste à son avis
+    -  Se déconnecter via la nav bar
 
+  Utilisateur connecté en tant que partenaire de livraison
+    -  Le partenaire de livraison a accès à l'ensemble des produit qu'il doit livrer
+    -  Il a la possibilité de passer l'état de livraison à l'étape suivante (Excepté le fait qu'il a récupéré le colis chez l'artiste qui doit être validé par l'artiste)
+    -  Se déconnecter via la nav bar
   
